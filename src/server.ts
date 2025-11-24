@@ -52,6 +52,12 @@ export async function startServer() {
         });
     });
 
+    // CORS configuration from environment
+    const corsOptions = {
+        origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+        credentials: true,
+    };
+
     // Admin GraphQL Server
     const adminServer = new ApolloServer({
         typeDefs: adminTypeDefs,
@@ -63,11 +69,8 @@ export async function startServer() {
     await adminServer.start();
 
     app.use(
-        '/graphql/admin',
-        cors<cors.CorsRequest>({
-            origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-            credentials: true,
-        }),
+        '/admin/graphql',
+        cors<cors.CorsRequest>(corsOptions),
         express.json(),
         expressMiddleware(adminServer, {
             context: createAdminContext,
@@ -85,11 +88,8 @@ export async function startServer() {
     await userServer.start();
 
     app.use(
-        '/graphql/user',
-        cors<cors.CorsRequest>({
-            origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-            credentials: true,
-        }),
+        '/user/graphql',
+        cors<cors.CorsRequest>(corsOptions),
         express.json(),
         expressMiddleware(userServer, {
             context: createUserContext,
@@ -115,8 +115,8 @@ export async function startServer() {
 
     logger.info(`🚀 Server ready`);
     logger.info(`📍 Health check: http://localhost:${PORT}/health`);
-    logger.info(`👨‍💼 Admin GraphQL: http://localhost:${PORT}/graphql/admin`);
-    logger.info(`👤 User GraphQL: http://localhost:${PORT}/graphql/user`);
+    logger.info(`👨‍💼 Admin GraphQL: http://localhost:${PORT}/admin/graphql`);
+    logger.info(`👤 User GraphQL: http://localhost:${PORT}/user/graphql`);
 
     // Graceful shutdown
     process.on('SIGTERM', async () => {
