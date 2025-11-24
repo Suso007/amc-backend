@@ -5,11 +5,12 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "compile": "tsc",
-    "start": "npm run compile && node dist/index.js",
+    "build": "tsc",
+    "start": "node dist/index.js",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write .",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "Susovan Pal",

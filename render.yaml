@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: amc-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build && npx prisma generate && npx prisma migrate deploy
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: amc-database
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ADMIN_SECRET
+        generateValue: true
+      - key: JWT_USER_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
+
+databases:
+  - name: amc-database
+    databaseName: amc_db
+    user: amc_user
+    plan: free
