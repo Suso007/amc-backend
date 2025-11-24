@@ -27,6 +27,7 @@ const logger = pino({
     },
 });
 
+
 export async function startServer() {
     const app = express();
     const httpServer = http.createServer(app);
