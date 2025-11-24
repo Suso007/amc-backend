@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Mail Setup Configuration
+model mailsetup {
+  id           Int      @id @default(autoincrement())
+  smtphost     String   @map("smtp_host")
+  smtpport     Int      @map("smtp_port")
+  smtpuser     String   @map("smtp_user")
+  smtppassword String   @map("smtp_password")
+  enablessl    Boolean  @default(false) @map("enable_ssl")
+  sendername   String   @map("sender_name")
+  senderemail  String   @map("sender_email")
+  createdat    DateTime @default(now()) @map("created_at")
+  updatedat    DateTime @updatedAt @map("updated_at")
+
+  @@map("mail_setup")
+}
+
+// Customer master
+model customermaster {
+  id            Int                 @id @default(autoincrement())
+  name          String              @db.VarChar(500)
+  details       String?             @db.VarChar(500)
+  contactPerson String?             @map("contact_person") @db.VarChar(50)
+  email         String?             @db.VarChar(100)
+  address       String?             @db.Text
+  status        String              @default("active") @db.VarChar(15)
+  createdat     DateTime            @default(now()) @map("created_at")
+  updatedat     DateTime            @updatedAt @map("updated_at")
+  
+  locations     customerlocation[]
+  invoices      invoice[]
+
+  @@map("customer_master")
+}
+
+// Customer locations
+model customerlocation {
+  id            Int            @id @default(autoincrement())
+  customerId    Int            @map("customer_id")
+  displayName   String         @map("display_name") @db.VarChar(500)
+  location      String?        @db.VarChar(150)
+  contactPerson String?        @map("contact_person") @db.VarChar(150)
+  email         String?        @db.VarChar(100)
+  phone1        String?        @map("phone1") @db.VarChar(15)
+  phone2        String?        @map("phone2") @db.VarChar(15)
+  address       String?        @db.Text
+  city          String?        @db.VarChar(50)
+  state         String?        @db.VarChar(50)
+  pin           String?        @db.VarChar(10)
+  gstin         String?        @db.VarChar(15)
+  pan           String?        @db.VarChar(15)
+  status        String         @default("active") @db.VarChar(15)
+  createdat     DateTime       @default(now()) @map("created_at")
+  updatedat     DateTime       @updatedAt @map("updated_at")
+  
+  customer      customermaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  invoices      invoice[]
+
+  @@map("customer_locations")
+}
+
+// Brand
+model brand {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(200)
+  details   String?   @db.VarChar(500)
+  status    String    @default("active") @db.VarChar(15)
+  createdat DateTime  @default(now()) @map("created_at")
+  updatedat DateTime  @updatedAt @map("updated_at")
+  
+  products  product[]
+
+  @@map("brands")
+}
+
+// category
+model category {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(200)
+  details   String?   @db.VarChar(500)
+  status    String    @default("active") @db.VarChar(15)
+  createdat DateTime  @default(now()) @map("created_at")
+  updatedat DateTime  @updatedAt @map("updated_at")
+  
+  products  product[]
+
+  @@map("categories")
+}
+
+// Product
+model product {
+  id          Int            @id @default(autoincrement())
+  name        String         @db.VarChar(500)
+  details     String?        @db.Text
+  brandId     Int?           @map("brand_id")
+  categoryId  Int?           @map("category_id")
+  model       String?        @db.VarChar(200)
+  status      String         @default("active") @db.VarChar(15)
+  createdat   DateTime       @default(now()) @map("created_at")
+  updatedat   DateTime       @updatedAt @map("updated_at")
+  
+  brand       brand?         @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  category    category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  invoiceItems invoiceitem[]
+
+  @@map("products")
+}
+
+// Invoice
+model invoice {
+  id         Int                @id @default(autoincrement())
+  customerId Int                @map("customer_id")
+  locationId Int?               @map("location_id")
+  invoiceNo  String             @unique @map("invoice_no") @db.VarChar(50)
+  invoiceDate DateTime          @map("invoice_date")
+  total      Decimal            @db.Decimal(10, 2)
+  discount   Decimal            @default(0) @db.Decimal(10, 2)
+  subtotal   Decimal            @db.Decimal(10, 2)
+  grandTotal Decimal            @map("grand_total") @db.Decimal(10, 2)
+  status     String             @default("pending") @db.VarChar(20)
+  createdat  DateTime           @default(now()) @map("created_at")
+  updatedat  DateTime           @updatedAt @map("updated_at")
+  
+  customer   customermaster     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  location   customerlocation?  @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  items      invoiceitem[]
+
+  @@map("invoices")
+}
+
+// Invoice Items
+model invoiceitem {
+  id        Int      @id @default(autoincrement())
+  invoiceId Int      @map("invoice_id")
+  productId Int      @map("product_id")
+  serialNo  String?  @map("serial_no") @db.VarChar(100)
+  quantity  Int      @default(1)
+  amount    Decimal  @db.Decimal(10, 2)
+  createdat DateTime @default(now()) @map("created_at")
+  updatedat DateTime @updatedAt @map("updated_at")
+  
+  invoice   invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product   product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_items")
+}
+
+// Admin Users (for authentication)
+model adminuser {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @db.VarChar(100)
+  password  String
+  name      String   @db.VarChar(200)
+  role      String   @default("admin") @db.VarChar(50)
+  status    String   @default("active") @db.VarChar(15)
+  createdat DateTime @default(now()) @map("created_at")
+  updatedat DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_users")
+}
