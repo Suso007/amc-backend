@@ -11,6 +11,9 @@ import { categoryResolvers } from './category.resolvers.js';
 import { productResolvers } from './product.resolvers.js';
 import { invoiceResolvers } from './invoice.resolvers.js';
 import { invoiceItemResolvers } from './invoiceitem.resolvers.js';
+import { amcProposalResolvers } from './amcproposal.resolvers.js';
+import { proposalItemResolvers } from './proposalitem.resolvers.js';
+import { proposalDocumentResolvers } from './proposaldocument.resolvers.js';
 
 // Custom DateTime scalar
 const dateTimeScalar = new GraphQLScalarType({
@@ -72,6 +75,9 @@ export const adminResolvers = {
         ...productResolvers.Query,
         ...invoiceResolvers.Query,
         ...invoiceItemResolvers.Query,
+        ...amcProposalResolvers.Query,
+        ...proposalItemResolvers.Query,
+        ...proposalDocumentResolvers.Query,
     },
 
     Mutation: {
@@ -84,6 +90,9 @@ export const adminResolvers = {
         ...productResolvers.Mutation,
         ...invoiceResolvers.Mutation,
         ...invoiceItemResolvers.Mutation,
+        ...amcProposalResolvers.Mutation,
+        ...proposalItemResolvers.Mutation,
+        ...proposalDocumentResolvers.Mutation,
     },
 
     // Type resolvers
@@ -94,4 +103,6 @@ export const adminResolvers = {
     Product: productResolvers.Product,
     Invoice: invoiceResolvers.Invoice,
     InvoiceItem: invoiceItemResolvers.InvoiceItem,
+    AmcProposal: amcProposalResolvers.AmcProposal,
+    ProposalItem: proposalItemResolvers.ProposalItem,
 };

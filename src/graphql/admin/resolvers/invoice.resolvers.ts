@@ -14,6 +14,43 @@ const requireAuth = (context: AdminContext) => {
     }
 };
 
+// Helper function to recalculate invoice totals
+const recalculateInvoiceTotals = async (invoiceId: number) => {
+    // Get all items for this invoice
+    const items = await prisma.invoiceitem.findMany({
+        where: { invoiceId },
+    });
+
+    // Calculate total from all items (convert Decimal to number)
+    const total = items.reduce((sum, item) => sum + Number(item.amount), 0);
+
+    // Get current invoice to get discount
+    const invoice = await prisma.invoice.findUnique({
+        where: { id: invoiceId },
+    });
+
+    if (!invoice) {
+        throw new GraphQLError('Invoice not found', {
+            extensions: { code: 'NOT_FOUND' },
+        });
+    }
+
+    // Calculate subtotal and grand total (convert Decimal to number)
+    const discount = Number(invoice.discount) || 0;
+    const subtotal = total - discount;
+    const grandTotal = subtotal;
+
+    // Update invoice with new totals
+    await prisma.invoice.update({
+        where: { id: invoiceId },
+        data: {
+            total,
+            subtotal,
+            grandTotal,
+        },
+    });
+};
+
 export const invoiceResolvers = {
     Query: {
         invoices: async (
@@ -152,9 +189,26 @@ export const invoiceResolvers = {
                 });
             }
 
-            return await prisma.invoice.update({
+            const invoice = await prisma.invoice.update({
                 where: { id },
                 data: input,
+                include: {
+                    customer: true,
+                    location: true,
+                    items: {
+                        include: {
+                            product: true,
+                        },
+                    },
+                },
+            });
+
+            // Recalculate totals after update (in case discount changed)
+            await recalculateInvoiceTotals(id);
+
+            // Fetch updated invoice with new totals
+            return await prisma.invoice.findUnique({
+                where: { id },
                 include: {
                     customer: true,
                     location: true,

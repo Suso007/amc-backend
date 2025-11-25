@@ -359,6 +359,166 @@ export const adminTypeDefs = `#graphql
   }
 
   # ============================================
+  # AMC Proposal Types
+  # ============================================
+
+  type AmcProposal {
+    id: Int!
+    proposalno: String!
+    proposaldate: DateTime!
+    amcstartdate: DateTime!
+    amcenddate: DateTime!
+    customerId: Int!
+    contractno: String
+    billingaddress: String
+    doclink: String
+    termsconditions: String
+    total: Decimal!
+    additionalcharge: Decimal!
+    discount: Decimal!
+    taxrate: Decimal!
+    taxamount: Decimal!
+    grandtotal: Decimal!
+    proposalstatus: String!
+    createdat: DateTime!
+    updatedat: DateTime!
+    customer: CustomerMaster
+    items: [ProposalItem!]
+  }
+
+  input AmcProposalInput {
+    proposalno: String!
+    proposaldate: DateTime!
+    amcstartdate: DateTime!
+    amcenddate: DateTime!
+    customerId: Int!
+    contractno: String
+    billingaddress: String
+    additionalcharge: Float
+    discount: Float
+    taxrate: Float
+    proposalstatus: String
+  }
+
+  input AmcProposalUpdateInput {
+    proposalno: String
+    proposaldate: DateTime
+    amcstartdate: DateTime
+    amcenddate: DateTime
+    customerId: Int
+    contractno: String
+    billingaddress: String
+    doclink: String
+    termsconditions: String
+    additionalcharge: Float
+    discount: Float
+    taxrate: Float
+    proposalstatus: String
+  }
+
+  # ============================================
+  # Proposal Item Types
+  # ============================================
+
+  type ProposalItem {
+    id: Int!
+    proposalId: Int!
+    locationId: Int
+    invoiceId: Int!
+    productId: Int!
+    serialno: String
+    saccode: String
+    quantity: Int!
+    rate: Decimal!
+    amount: Decimal!
+    createdat: DateTime!
+    updatedat: DateTime!
+    proposal: AmcProposal
+    location: CustomerLocation
+    invoice: Invoice
+    product: Product
+  }
+
+  input ProposalItemInput {
+    locationId: Int
+    invoiceId: Int!
+    productId: Int!
+    serialno: String
+    saccode: String
+    quantity: Int!
+    rate: Float!
+    amount: Float!
+  }
+
+  input ProposalItemUpdateInput {
+    proposalId: Int
+    locationId: Int
+    invoiceId: Int
+    productId: Int
+    serialno: String
+    saccode: String
+    quantity: Int
+    rate: Float
+    amount: Float
+  }
+
+  type AmcProposalPaginated {
+    data: [AmcProposal!]!
+    pagination: PaginationInfo!
+  }
+
+  type ProposalItemPaginated {
+    data: [ProposalItem!]!
+    pagination: PaginationInfo!
+  }
+
+  # ============================================
+  # Proposal Document Types
+  # ============================================
+
+  type ProposalDocument {
+    id: Int!
+    proposalno: String!
+    doclink: String!
+    createdby: String!
+    createdat: DateTime!
+    updatedat: DateTime!
+  }
+
+  type ProposalDocumentPaginated {
+    data: [ProposalDocument!]!
+    pagination: PaginationInfo!
+  }
+
+  # ============================================
+  # Email Record Types
+  # ============================================
+
+  type EmailRecord {
+    id: Int!
+    proposalno: String!
+    email: String!
+    status: String!
+    sentby: String!
+    message: String
+    createdat: DateTime!
+    updatedat: DateTime!
+  }
+
+  type EmailRecordPaginated {
+    data: [EmailRecord!]!
+    pagination: PaginationInfo!
+  }
+
+  input SendProposalEmailInput {
+    proposalId: Int!
+    email: String!
+    message: String
+  }
+
+
+
+  # ============================================
   # Queries
   # ============================================
 
@@ -396,6 +556,22 @@ export const adminTypeDefs = `#graphql
     # Invoice Items
     invoiceItems(page: Int, limit: Int, invoiceId: Int): InvoiceItemPaginated!
     invoiceItem(id: Int!): InvoiceItem
+
+    # AMC Proposals
+    amcProposals(page: Int, limit: Int, search: String, status: String, customerId: Int): AmcProposalPaginated!
+    amcProposal(id: Int!): AmcProposal
+
+    # Proposal Items
+    proposalItems(page: Int, limit: Int, proposalId: Int): ProposalItemPaginated!
+    proposalItem(id: Int!): ProposalItem
+
+    # Proposal Documents
+    proposalDocuments(page: Int, limit: Int, proposalno: String): ProposalDocumentPaginated!
+    proposalDocument(id: Int!): ProposalDocument
+
+    # Email Records
+    emailRecords(page: Int, limit: Int, proposalno: String): EmailRecordPaginated!
+    emailRecord(id: Int!): EmailRecord
   }
 
   # ============================================
@@ -443,5 +619,21 @@ export const adminTypeDefs = `#graphql
     createInvoiceItem(invoiceId: Int!, input: InvoiceItemInput!): InvoiceItem!
     updateInvoiceItem(id: Int!, input: InvoiceItemUpdateInput!): InvoiceItem!
     deleteInvoiceItem(id: Int!): Boolean!
+
+    # AMC Proposals
+    createAmcProposal(input: AmcProposalInput!): AmcProposal!
+    updateAmcProposal(id: Int!, input: AmcProposalUpdateInput!): AmcProposal!
+    deleteAmcProposal(id: Int!): Boolean!
+
+    # Proposal Items
+    createProposalItem(proposalId: Int!, input: ProposalItemInput!): ProposalItem!
+    updateProposalItem(id: Int!, input: ProposalItemUpdateInput!): ProposalItem!
+    deleteProposalItem(id: Int!): Boolean!
+
+    # Proposal Documents
+    generateProposalDocument(proposalId: Int!): ProposalDocument!
+
+    # Email Records
+    sendProposalEmail(input: SendProposalEmailInput!): EmailRecord!
   }
 `;

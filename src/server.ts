@@ -69,7 +69,7 @@ export async function startServer() {
     await adminServer.start();
 
     app.use(
-        '/admin/graphql',
+        '/admin',
         cors<cors.CorsRequest>(corsOptions),
         express.json(),
         expressMiddleware(adminServer, {
@@ -88,7 +88,7 @@ export async function startServer() {
     await userServer.start();
 
     app.use(
-        '/user/graphql',
+        '/user',
         cors<cors.CorsRequest>(corsOptions),
         express.json(),
         expressMiddleware(userServer, {
@@ -115,8 +115,8 @@ export async function startServer() {
 
     logger.info(`🚀 Server ready`);
     logger.info(`📍 Health check: http://localhost:${PORT}/health`);
-    logger.info(`👨‍💼 Admin GraphQL: http://localhost:${PORT}/admin/graphql`);
-    logger.info(`👤 User GraphQL: http://localhost:${PORT}/user/graphql`);
+    logger.info(`👨‍💼 Admin GraphQL: http://localhost:${PORT}/admin`);
+    logger.info(`👤 User GraphQL: http://localhost:${PORT}/user`);
 
     // Graceful shutdown
     process.on('SIGTERM', async () => {

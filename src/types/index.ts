@@ -363,3 +363,105 @@ export interface AdminUserInput {
     role?: string;
     status?: string;
 }
+
+// ============================================
+// AMC Proposal
+// ============================================
+
+export interface AmcProposal {
+    id: number;
+    proposalno: string;
+    proposaldate: Date;
+    amcstartdate: Date;
+    amcenddate: Date;
+    customerId: number;
+    contractno?: string | null;
+    billingaddress?: string | null;
+    total: Decimal;
+    additionalcharge: Decimal;
+    discount: Decimal;
+    taxrate: Decimal;
+    taxamount: Decimal;
+    grandtotal: Decimal;
+    proposalstatus: string;
+    createdat: Date;
+    updatedat: Date;
+    customer?: CustomerMaster;
+    items?: ProposalItem[];
+}
+
+export interface AmcProposalInput {
+    proposalno: string;
+    proposaldate: Date | string;
+    amcstartdate: Date | string;
+    amcenddate: Date | string;
+    customerId: number;
+    contractno?: string;
+    billingaddress?: string;
+    additionalcharge?: number;
+    discount?: number;
+    taxrate?: number;
+    proposalstatus?: string;
+}
+
+export interface AmcProposalUpdateInput {
+    proposalno?: string;
+    proposaldate?: Date | string;
+    amcstartdate?: Date | string;
+    amcenddate?: Date | string;
+    customerId?: number;
+    contractno?: string;
+    billingaddress?: string;
+    additionalcharge?: number;
+    discount?: number;
+    taxrate?: number;
+    proposalstatus?: string;
+}
+
+// ============================================
+// Proposal Item
+// ============================================
+
+export interface ProposalItem {
+    id: number;
+    proposalId: number;
+    locationId?: number | null;
+    invoiceId: number;
+    productId: number;
+    serialno?: string | null;
+    saccode?: string | null;
+    quantity: number;
+    rate: Decimal;
+    amount: Decimal;
+    createdat: Date;
+    updatedat: Date;
+    proposal?: AmcProposal;
+    location?: CustomerLocation | null;
+    invoice?: Invoice;
+    product?: Product;
+}
+
+export interface ProposalItemInput {
+    proposalId?: number;
+    locationId?: number;
+    invoiceId: number;
+    productId: number;
+    serialno?: string;
+    saccode?: string;
+    quantity: number;
+    rate: number;
+    amount: number;
+}
+
+export interface ProposalItemUpdateInput {
+    proposalId?: number;
+    locationId?: number;
+    invoiceId?: number;
+    productId?: number;
+    serialno?: string;
+    saccode?: string;
+    quantity?: number;
+    rate?: number;
+    amount?: number;
+}
+
