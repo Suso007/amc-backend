@@ -148,12 +148,14 @@ export const proposalDocumentResolvers = {
                 amcstartdate: new Date(proposal.amcstartdate).toLocaleDateString('en-IN'),
                 amcenddate: new Date(proposal.amcenddate).toLocaleDateString('en-IN'),
                 customerName: proposal.customer.name,
-                contractno: proposal.contractno || undefined,
-                billingaddress: proposal.billingaddress || undefined,
+                contactPerson: proposal.customer.contactPerson,
+                contractno: proposal.contractno || "",
+                billingaddress: proposal.billingaddress || "",
                 items: proposal.items.map((item: any) => ({
                     location: item.location?.displayName,
                     product: item.product.name,
                     serialno: item.serialno,
+                    saccode: item.saccode,
                     quantity: item.quantity,
                     rate: Number(item.rate),
                     amount: Number(item.amount),
@@ -164,6 +166,7 @@ export const proposalDocumentResolvers = {
                 taxrate: Number(proposal.taxrate),
                 taxamount: Number(proposal.taxamount),
                 grandtotal: Number(proposal.grandtotal),
+                termsconditions: proposal.termsconditions || "",
             };
 
             // Generate document

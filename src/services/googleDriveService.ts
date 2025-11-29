@@ -20,6 +20,7 @@ interface ProposalData {
         location?: string;
         product: string;
         serialno?: string;
+        saccode?: string;
         quantity: number;
         rate: number;
         amount: number;
