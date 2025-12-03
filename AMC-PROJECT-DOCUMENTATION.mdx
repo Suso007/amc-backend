@@ -1,0 +1,1607 @@
+# AMC Management System - Complete Project Documentation
+
+> **Last Updated**: November 30, 2025  
+> **Author**: Susovan Pal  
+> **Version**: 1.0.0
+
+---
+
+## 📋 Table of Contents
+
+1. [Project Overview](#project-overview)
+2. [Architecture](#architecture)
+3. [Tech Stack](#tech-stack)
+4. [Database Schema](#database-schema)
+5. [Backend Documentation](#backend-documentation)
+6. [Frontend Documentation](#frontend-documentation)
+7. [Development Workflow](#development-workflow)
+8. [Deployment](#deployment)
+9. [API Reference](#api-reference)
+10. [Security](#security)
+11. [Troubleshooting](#troubleshooting)
+
+---
+
+## 🎯 Project Overview
+
+The **AMC Management System** is a comprehensive full-stack application designed to manage Annual Maintenance Contracts (AMC). It provides a complete solution for tracking customers, products, invoices, and AMC proposals with integrated document generation and email capabilities.
+
+### Key Features
+
+- ✅ **Dual GraphQL APIs** - Separate admin and user endpoints
+- ✅ **JWT Authentication** - Secure token-based authentication
+- ✅ **Complete CRUD Operations** - Full data management for all entities
+- ✅ **Modern UI** - Built with Next.js 16 and shadcn/ui
+- ✅ **Real-time Updates** - Apollo Client integration
+- ✅ **Document Generation** - Google Drive integration for proposals
+- ✅ **Email System** - SMTP-based email notifications
+- ✅ **Responsive Design** - Mobile, tablet, and desktop support
+- ✅ **Dark/Light Mode** - Theme switching capability
+- ✅ **Type Safety** - Full TypeScript coverage
+
+### Business Capabilities
+
+1. **Customer Management** - Track customers and their multiple locations
+2. **Product Catalog** - Manage products with brands and categories
+3. **Invoice Management** - Create and track invoices with line items
+4. **AMC Proposals** - Generate and manage AMC proposals with items
+5. **Document Generation** - Auto-generate proposal documents via Google Drive
+6. **Email Tracking** - Track all email communications
+7. **Mail Configuration** - SMTP settings management
+
+---
+
+## 🏗️ Architecture
+
+### System Architecture
+
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        A[Next.js 16 App]
+        B[Apollo Client]
+        C[Zustand Store]
+        D[shadcn/ui Components]
+    end
+    
+    subgraph "Backend Layer"
+        E[Express Server]
+        F[Admin GraphQL API]
+        G[User GraphQL API]
+        H[JWT Auth Middleware]
+    end
+    
+    subgraph "Data Layer"
+        I[PostgreSQL Database]
+        J[Prisma ORM]
+    end
+    
+    subgraph "External Services"
+        K[Google Drive API]
+        L[SMTP Server]
+    end
+    
+    A --> B
+    B --> C
+    A --> D
+    B --> F
+    B --> G
+    F --> H
+    G --> H
+    H --> J
+    J --> I
+    F --> K
+    F --> L
+```
+
+### Application Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant A as Apollo Client
+    participant B as Backend API
+    participant DB as Database
+    participant G as Google Drive
+    
+    U->>F: Login Request
+    F->>A: GraphQL Mutation
+    A->>B: POST /graphql/admin
+    B->>DB: Verify Credentials
+    DB-->>B: User Data
+    B-->>A: JWT Token
+    A-->>F: Store Token
+    F-->>U: Redirect to Dashboard
+    
+    U->>F: Create AMC Proposal
+    F->>A: GraphQL Mutation
+    A->>B: POST /graphql/admin (with JWT)
+    B->>DB: Insert Proposal
+    B->>G: Generate Document
+    G-->>B: Document Link
+    B->>DB: Update Proposal
+    DB-->>B: Proposal Data
+    B-->>A: Response
+    A-->>F: Update UI
+    F-->>U: Show Success
+```
+
+### Project Structure
+
+```
+amc-management-system/
+├── amc-backend/                 # Backend GraphQL API
+│   ├── src/
+│   │   ├── config/             # Configuration files
+│   │   ├── graphql/            # GraphQL schemas & resolvers
+│   │   │   ├── admin/          # Admin API
+│   │   │   └── user/           # User API
+│   │   ├── services/           # External services
+│   │   ├── types/              # TypeScript types
+│   │   ├── utils/              # Utility functions
+│   │   ├── index.ts            # Entry point
+│   │   └── server.ts           # Server configuration
+│   ├── prisma/                 # Database schema & migrations
+│   └── package.json
+│
+└── amc-front-admin/            # Frontend Admin Panel
+    ├── app/                    # Next.js App Router
+    │   ├── (admin)/           # Protected routes
+    │   ├── login/             # Login page
+    │   └── no-access/         # Access denied
+    ├── components/            # React components
+    │   ├── layout/           # Layout components
+    │   └── ui/               # shadcn/ui components
+    ├── graphql/              # GraphQL queries/mutations
+    ├── lib/                  # Utilities & configs
+    ├── store/                # Zustand state
+    ├── types/                # TypeScript types
+    └── package.json
+```
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend Technologies
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Node.js** | 18+ | Runtime environment |
+| **TypeScript** | 5.9.3 | Type safety |
+| **Express.js** | 5.1.0 | Web server framework |
+| **Apollo Server** | 5.2.0 | GraphQL server |
+| **PostgreSQL** | Latest | Database |
+| **Prisma** | 6.19.0 | ORM & migrations |
+| **GraphQL** | 16.12.0 | API query language |
+| **Argon2** | 0.44.0 | Password hashing |
+| **JWT** | 9.0.2 | Authentication tokens |
+| **Zod** | 4.1.12 | Schema validation |
+| **Pino** | 10.0.0 | Logging |
+| **Helmet** | 8.1.0 | Security headers |
+| **CORS** | 2.8.5 | Cross-origin requests |
+| **Nodemailer** | 7.0.10 | Email sending |
+| **Google APIs** | 166.0.0 | Drive integration |
+| **Faker.js** | 10.0.0 | Test data generation |
+
+### Frontend Technologies
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Next.js** | 16.0.4 | React framework |
+| **React** | 19.2.0 | UI library |
+| **TypeScript** | 5+ | Type safety |
+| **Apollo Client** | 4.0.9 | GraphQL client |
+| **Zustand** | 5.0.8 | State management |
+| **Tailwind CSS** | 4 | Styling framework |
+| **shadcn/ui** | Latest | UI components |
+| **Radix UI** | Latest | Headless components |
+| **React Hook Form** | 7.66.1 | Form handling |
+| **Zod** | 4.1.13 | Form validation |
+| **next-themes** | 0.4.6 | Theme switching |
+| **Lucide React** | 0.554.0 | Icons |
+| **Recharts** | 3.5.0 | Charts & graphs |
+| **date-fns** | 4.1.0 | Date utilities |
+| **Sonner** | 2.0.7 | Toast notifications |
+
+---
+
+## 🗄️ Database Schema
+
+### Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    customermaster ||--o{ customerlocation : has
+    customermaster ||--o{ invoice : creates
+    customermaster ||--o{ amcproposal : receives
+    customerlocation ||--o{ invoice : "billed to"
+    customerlocation ||--o{ proposalitem : "located at"
+    brand ||--o{ product : categorizes
+    category ||--o{ product : categorizes
+    product ||--o{ invoiceitem : "included in"
+    product ||--o{ proposalitem : "included in"
+    invoice ||--o{ invoiceitem : contains
+    invoice ||--o{ proposalitem : references
+    amcproposal ||--o{ proposalitem : contains
+    
+    customermaster {
+        int id PK
+        string name
+        string details
+        string contactPerson
+        string email
+        string address
+        string status
+        datetime createdat
+        datetime updatedat
+    }
+    
+    customerlocation {
+        int id PK
+        int customerId FK
+        string displayName
+        string location
+        string contactPerson
+        string email
+        string phone1
+        string phone2
+        string address
+        string city
+        string state
+        string pin
+        string gstin
+        string pan
+        string status
+        datetime createdat
+        datetime updatedat
+    }
+    
+    brand {
+        int id PK
+        string name
+        string details
+        string status
+        datetime createdat
+        datetime updatedat
+    }
+    
+    category {
+        int id PK
+        string name
+        string details
+        string status
+        datetime createdat
+        datetime updatedat
+    }
+    
+    product {
+        int id PK
+        string name
+        string details
+        int brandId FK
+        int categoryId FK
+        string model
+        string status
+        datetime createdat
+        datetime updatedat
+    }
+    
+    invoice {
+        int id PK
+        int customerId FK
+        int locationId FK
+        string invoiceNo
+        datetime invoiceDate
+        decimal total
+        decimal discount
+        decimal subtotal
+        decimal grandTotal
+        string status
+        datetime createdat
+        datetime updatedat
+    }
+    
+    invoiceitem {
+        int id PK
+        int invoiceId FK
+        int productId FK
+        string serialNo
+        int quantity
+        decimal amount
+        datetime createdat
+        datetime updatedat
+    }
+    
+    amcproposal {
+        int id PK
+        string proposalno
+        datetime proposaldate
+        datetime amcstartdate
+        datetime amcenddate
+        int customerId FK
+        string contractno
+        string billingaddress
+        string doclink
+        string termsconditions
+        decimal total
+        decimal additionalcharge
+        decimal discount
+        decimal taxrate
+        decimal taxamount
+        decimal grandtotal
+        string proposalstatus
+        datetime createdat
+        datetime updatedat
+    }
+    
+    proposalitem {
+        int id PK
+        int proposalId FK
+        int locationId FK
+        int invoiceId FK
+        int productId FK
+        string serialno
+        string saccode
+        int quantity
+        decimal rate
+        decimal amount
+        datetime createdat
+        datetime updatedat
+    }
+```
+
+### Core Entities
+
+#### 1. Customer Master
+- **Purpose**: Store customer information
+- **Key Fields**: name, email, contactPerson, address, status
+- **Relations**: Has many locations, invoices, and proposals
+
+#### 2. Customer Location
+- **Purpose**: Track multiple customer locations
+- **Key Fields**: displayName, location, contactPerson, phone, address, city, state, pin, gstin, pan
+- **Relations**: Belongs to customer, has many invoices and proposal items
+
+#### 3. Brand & Category
+- **Purpose**: Organize products
+- **Key Fields**: name, details, status
+- **Relations**: Has many products
+
+#### 4. Product
+- **Purpose**: Product catalog
+- **Key Fields**: name, details, model, brandId, categoryId, status
+- **Relations**: Belongs to brand and category, used in invoice items and proposal items
+
+#### 5. Invoice
+- **Purpose**: Track sales invoices
+- **Key Fields**: invoiceNo, invoiceDate, total, discount, subtotal, grandTotal, status
+- **Relations**: Belongs to customer and location, has many items
+
+#### 6. Invoice Item
+- **Purpose**: Line items in invoices
+- **Key Fields**: productId, serialNo, quantity, amount
+- **Relations**: Belongs to invoice and product
+
+#### 7. AMC Proposal
+- **Purpose**: AMC contract proposals
+- **Key Fields**: proposalno, proposaldate, amcstartdate, amcenddate, contractno, total, grandtotal, proposalstatus
+- **Relations**: Belongs to customer, has many items
+
+#### 8. Proposal Item
+- **Purpose**: Items in AMC proposals
+- **Key Fields**: productId, locationId, invoiceId, serialno, saccode, quantity, rate, amount
+- **Relations**: Belongs to proposal, location, invoice, and product
+
+#### 9. Mail Setup
+- **Purpose**: SMTP configuration
+- **Key Fields**: smtphost, smtpport, smtpuser, smtppassword, enablessl, sendername, senderemail
+
+#### 10. Admin User
+- **Purpose**: Admin authentication
+- **Key Fields**: email, password (hashed), name, role, status
+
+#### 11. Proposal Document
+- **Purpose**: Track generated proposal documents
+- **Key Fields**: proposalno, doclink, createdby
+
+#### 12. Email Record
+- **Purpose**: Track sent emails
+- **Key Fields**: proposalno, email, status, sentby, message
+
+---
+
+## 🔧 Backend Documentation
+
+### Setup & Installation
+
+#### Prerequisites
+- Node.js 18+
+- PostgreSQL database
+- Google Cloud account (for Drive integration)
+
+#### Environment Variables
+
+Create `.env` file in `amc-backend/`:
+
+```env
+# Database Configuration
+DATABASE_URL="postgresql://postgres:password@localhost:5432/amc_db?schema=public"
+
+# Server Configuration
+PORT=4000
+NODE_ENV=development
+
+# JWT Configuration
+JWT_SECRET="your-super-secret-jwt-key-change-in-production-min-32-chars"
+JWT_EXPIRES_IN="7d"
+
+# CORS Configuration
+ALLOWED_ORIGINS="http://localhost:3000,http://localhost:5173,https://your-frontend-domain.com"
+
+# Google Drive Configuration
+GOOGLE_SERVICE_ACCOUNT_EMAIL="your-service-account@project-id.iam.gserviceaccount.com"
+GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n"
+GOOGLE_DRIVE_FOLDER_ID="your-google-drive-folder-id"
+GOOGLE_DOCS_TEMPLATE_ID="your-google-docs-template-id"
+```
+
+#### Installation Steps
+
+```bash
+# Navigate to backend directory
+cd amc-backend
+
+# Install dependencies
+npm install
+
+# Generate Prisma client
+npx prisma generate
+
+# Run database migrations
+npx prisma migrate dev
+
+# Seed database with initial data
+npm run db:seed
+
+# Start development server
+npm run dev
+```
+
+#### Default Admin Credentials
+
+After seeding:
+- **Email**: `admin@amc.com`
+- **Password**: `Admin@123`
+
+### GraphQL Endpoints
+
+- **Admin API**: `http://localhost:4000/graphql/admin`
+- **User API**: `http://localhost:4000/graphql/user`
+- **Health Check**: `http://localhost:4000/health`
+
+### Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant A as API
+    participant DB as Database
+    
+    C->>A: POST /graphql/admin (login mutation)
+    A->>DB: Query admin user by email
+    DB-->>A: User data with hashed password
+    A->>A: Verify password with Argon2
+    A->>A: Generate JWT token
+    A-->>C: Return token + user data
+    
+    Note over C: Store token in localStorage/cookie
+    
+    C->>A: POST /graphql/admin (with Authorization header)
+    A->>A: Verify JWT token
+    A->>A: Extract user from token
+    A->>DB: Execute query with user context
+    DB-->>A: Query result
+    A-->>C: Return data
+```
+
+### Available Scripts
+
+```bash
+npm run dev          # Start development server with hot reload
+npm run build        # Compile TypeScript to JavaScript
+npm start            # Start production server
+npm run db:seed      # Seed database with sample data
+npm run lint         # Run ESLint
+npm run format       # Format code with Prettier
+```
+
+### Services
+
+#### Email Service
+- **File**: `src/services/emailService.ts`
+- **Purpose**: Send emails via SMTP
+- **Features**: Template support, attachment handling
+
+#### Google Drive Service
+- **File**: `src/services/googleDriveService.ts`
+- **Purpose**: Generate proposal documents
+- **Features**: Template-based document generation, folder management
+
+---
+
+## 🎨 Frontend Documentation
+
+### Setup & Installation
+
+#### Environment Variables
+
+Create `.env` file in `amc-front-admin/`:
+
+```env
+NEXT_PUBLIC_GRAPHQL_URL=http://localhost:4000/graphql/admin
+```
+
+#### Installation Steps
+
+```bash
+# Navigate to frontend directory
+cd amc-front-admin
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Open browser
+# http://localhost:3000
+```
+
+### Available Pages
+
+#### Fully Implemented
+
+| Route | Description | Features |
+|-------|-------------|----------|
+| `/login` | Login page | JWT authentication |
+| `/dashboard` | Dashboard | Statistics, recent data |
+| `/brands` | Brand management | Full CRUD operations |
+| `/categories` | Category management | Full CRUD operations |
+| `/products` | Product management | Full CRUD with image upload |
+| `/customers` | Customer management | Full CRUD with locations |
+| `/invoices` | Invoice management | Full CRUD with items |
+| `/amc-proposals` | AMC proposals | Full CRUD with items, document generation |
+| `/mail-settings` | SMTP configuration | SMTP settings management |
+| `/profile` | User profile | View profile information |
+
+### Component Structure
+
+```
+components/
+├── layout/
+│   ├── app-sidebar.tsx        # Main navigation sidebar
+│   ├── header.tsx             # Top header with user menu
+│   └── theme-provider.tsx     # Theme context provider
+│
+└── ui/                        # shadcn/ui components
+    ├── button.tsx
+    ├── input.tsx
+    ├── dialog.tsx
+    ├── select.tsx
+    ├── table.tsx
+    ├── form.tsx
+    └── ... (20+ components)
+```
+
+### State Management
+
+Using **Zustand** for global state:
+
+```typescript
+// store/index.ts
+interface AppState {
+  apolloClient: ApolloClient<NormalizedCacheObject> | null;
+  setApolloClient: (client: ApolloClient<NormalizedCacheObject>) => void;
+}
+```
+
+### GraphQL Integration
+
+```typescript
+// lib/apollo-client.ts
+import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
+
+const httpLink = createHttpLink({
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL,
+});
+
+const authLink = setContext((_, { headers }) => {
+  const token = localStorage.getItem('token');
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : "",
+    }
+  };
+});
+
+const client = new ApolloClient({
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache(),
+});
+```
+
+### Form Handling
+
+Using **React Hook Form** + **Zod**:
+
+```typescript
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const schema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
+});
+
+const form = useForm({
+  resolver: zodResolver(schema),
+});
+```
+
+### Available Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm start            # Start production server
+npm run lint         # Run ESLint
+```
+
+---
+
+## 🔄 Development Workflow
+
+### Initial Setup
+
+```bash
+# 1. Clone repositories
+git clone <backend-repo>
+git clone <frontend-repo>
+
+# 2. Setup backend
+cd amc-backend
+npm install
+cp .env.example .env
+# Edit .env with your configuration
+npx prisma generate
+npx prisma migrate dev
+npm run db:seed
+npm run dev
+
+# 3. Setup frontend (in new terminal)
+cd amc-front-admin
+npm install
+cp .env.example .env
+# Edit .env with backend URL
+npm run dev
+```
+
+### Daily Development
+
+```bash
+# Terminal 1: Backend
+cd amc-backend
+npm run dev
+
+# Terminal 2: Frontend
+cd amc-front-admin
+npm run dev
+```
+
+### Adding New Features
+
+#### Backend: Adding a New Entity
+
+1. **Update Prisma Schema** (`prisma/schema.prisma`)
+```prisma
+model newentity {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(200)
+  status    String   @default("active") @db.VarChar(15)
+  createdat DateTime @default(now()) @map("created_at")
+  updatedat DateTime @updatedAt @map("updated_at")
+
+  @@map("new_entities")
+}
+```
+
+2. **Run Migration**
+```bash
+npx prisma migrate dev --name add_new_entity
+```
+
+3. **Create GraphQL Schema** (`src/graphql/admin/schema.ts`)
+```typescript
+type NewEntity {
+  id: Int!
+  name: String!
+  status: String!
+  createdat: DateTime!
+  updatedat: DateTime!
+}
+
+input CreateNewEntityInput {
+  name: String!
+  status: String
+}
+
+type Query {
+  newEntities(page: Int, limit: Int, search: String): NewEntityList!
+  newEntity(id: Int!): NewEntity
+}
+
+type Mutation {
+  createNewEntity(input: CreateNewEntityInput!): NewEntity!
+  updateNewEntity(id: Int!, input: CreateNewEntityInput!): NewEntity!
+  deleteNewEntity(id: Int!): Boolean!
+}
+```
+
+4. **Create Resolvers** (`src/graphql/admin/resolvers/newentity.resolvers.ts`)
+
+5. **Update Resolver Index** (`src/graphql/admin/resolvers/index.ts`)
+
+#### Frontend: Adding a New Page
+
+1. **Create Page** (`app/(admin)/new-entity/page.tsx`)
+
+2. **Create GraphQL Queries** (`graphql/newentity.ts`)
+
+3. **Add to Sidebar** (`components/layout/app-sidebar.tsx`)
+
+4. **Implement CRUD Operations**
+
+### Database Migrations
+
+```bash
+# Create migration
+npx prisma migrate dev --name migration_name
+
+# Apply migrations (production)
+npx prisma migrate deploy
+
+# Reset database (development only)
+npx prisma migrate reset
+
+# View migration status
+npx prisma migrate status
+```
+
+### Code Quality
+
+```bash
+# Backend
+cd amc-backend
+npm run lint
+npm run format
+
+# Frontend
+cd amc-front-admin
+npm run lint
+```
+
+---
+
+## 🚀 Deployment
+
+### Backend Deployment (Render.com)
+
+#### Configuration File: `render.yaml`
+
+```yaml
+services:
+  - type: web
+    name: amc-backend
+    env: node
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        sync: false
+```
+
+#### Steps
+
+1. **Push to GitHub**
+```bash
+git add .
+git commit -m "Deploy backend"
+git push origin main
+```
+
+2. **Create Render Service**
+   - Connect GitHub repository
+   - Select `render.yaml` configuration
+   - Add environment variables
+   - Deploy
+
+3. **Run Migrations**
+```bash
+# In Render shell
+npx prisma migrate deploy
+```
+
+4. **Seed Database**
+```bash
+npm run db:seed
+```
+
+### Frontend Deployment (Vercel)
+
+#### Steps
+
+1. **Update Environment Variables**
+```env
+NEXT_PUBLIC_GRAPHQL_URL=https://your-backend.onrender.com/graphql/admin
+```
+
+2. **Push to GitHub**
+```bash
+git add .
+git commit -m "Deploy frontend"
+git push origin main
+```
+
+3. **Deploy to Vercel**
+   - Import GitHub repository
+   - Add environment variables
+   - Deploy
+
+### Environment Variables Checklist
+
+#### Backend (Production)
+- ✅ `DATABASE_URL` - PostgreSQL connection string
+- ✅ `JWT_SECRET` - Strong secret key (min 32 chars)
+- ✅ `NODE_ENV` - Set to `production`
+- ✅ `ALLOWED_ORIGINS` - Frontend URL(s)
+- ✅ `GOOGLE_SERVICE_ACCOUNT_EMAIL` - For Drive integration
+- ✅ `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` - Service account key
+- ✅ `GOOGLE_DRIVE_FOLDER_ID` - Drive folder ID
+- ✅ `GOOGLE_DOCS_TEMPLATE_ID` - Template document ID
+
+#### Frontend (Production)
+- ✅ `NEXT_PUBLIC_GRAPHQL_URL` - Backend GraphQL endpoint
+
+---
+
+## 📚 API Reference
+
+### Authentication
+
+#### Login
+
+```graphql
+mutation Login {
+  login(email: "admin@amc.com", password: "Admin@123") {
+    token
+    user {
+      id
+      email
+      name
+      role
+      status
+    }
+  }
+}
+```
+
+#### Get Current User
+
+```graphql
+query Me {
+  me {
+    id
+    email
+    name
+    role
+    status
+  }
+}
+```
+
+### Customer Management
+
+#### Create Customer
+
+```graphql
+mutation CreateCustomer {
+  createCustomer(input: {
+    name: "ABC Corporation"
+    email: "contact@abc.com"
+    contactPerson: "John Doe"
+    address: "123 Main St"
+    status: "active"
+  }) {
+    id
+    name
+    email
+    contactPerson
+    status
+  }
+}
+```
+
+#### Get Customers (with Pagination)
+
+```graphql
+query GetCustomers {
+  customers(page: 1, limit: 10, search: "ABC") {
+    data {
+      id
+      name
+      email
+      contactPerson
+      status
+      locations {
+        id
+        displayName
+        location
+      }
+    }
+    pagination {
+      page
+      limit
+      total
+      totalPages
+    }
+  }
+}
+```
+
+#### Update Customer
+
+```graphql
+mutation UpdateCustomer {
+  updateCustomer(id: 1, input: {
+    name: "ABC Corporation Ltd"
+    email: "info@abc.com"
+  }) {
+    id
+    name
+    email
+  }
+}
+```
+
+#### Delete Customer
+
+```graphql
+mutation DeleteCustomer {
+  deleteCustomer(id: 1)
+}
+```
+
+### Product Management
+
+#### Create Product
+
+```graphql
+mutation CreateProduct {
+  createProduct(input: {
+    name: "Air Conditioner"
+    details: "Split AC 1.5 Ton"
+    brandId: 1
+    categoryId: 2
+    model: "AC-150"
+    status: "active"
+  }) {
+    id
+    name
+    model
+    brand {
+      name
+    }
+    category {
+      name
+    }
+  }
+}
+```
+
+#### Get Products
+
+```graphql
+query GetProducts {
+  products(page: 1, limit: 20, search: "AC") {
+    data {
+      id
+      name
+      details
+      model
+      status
+      brand {
+        id
+        name
+      }
+      category {
+        id
+        name
+      }
+    }
+    pagination {
+      page
+      limit
+      total
+      totalPages
+    }
+  }
+}
+```
+
+### Invoice Management
+
+#### Create Invoice with Items
+
+```graphql
+mutation CreateInvoice {
+  createInvoice(input: {
+    customerId: 1
+    locationId: 1
+    invoiceNo: "INV-2024-001"
+    invoiceDate: "2024-11-30"
+    total: 1000
+    discount: 100
+    subtotal: 900
+    grandTotal: 900
+    status: "pending"
+    items: [
+      {
+        productId: 1
+        serialNo: "SN001"
+        quantity: 2
+        amount: 500
+      },
+      {
+        productId: 2
+        serialNo: "SN002"
+        quantity: 1
+        amount: 400
+      }
+    ]
+  }) {
+    id
+    invoiceNo
+    invoiceDate
+    grandTotal
+    status
+    customer {
+      name
+    }
+    location {
+      displayName
+    }
+    items {
+      id
+      quantity
+      amount
+      serialNo
+      product {
+        name
+        model
+      }
+    }
+  }
+}
+```
+
+#### Get Invoice Details
+
+```graphql
+query GetInvoice {
+  invoice(id: 1) {
+    id
+    invoiceNo
+    invoiceDate
+    total
+    discount
+    subtotal
+    grandTotal
+    status
+    customer {
+      id
+      name
+      email
+    }
+    location {
+      id
+      displayName
+      address
+    }
+    items {
+      id
+      serialNo
+      quantity
+      amount
+      product {
+        id
+        name
+        model
+        brand {
+          name
+        }
+      }
+    }
+  }
+}
+```
+
+### AMC Proposal Management
+
+#### Create AMC Proposal
+
+```graphql
+mutation CreateAMCProposal {
+  createAmcProposal(input: {
+    proposalno: "AMC-2024-001"
+    proposaldate: "2024-11-30"
+    amcstartdate: "2024-12-01"
+    amcenddate: "2025-11-30"
+    customerId: 1
+    contractno: "CONTRACT-001"
+    billingaddress: "123 Main St, City"
+    termsconditions: "Standard AMC terms"
+    total: 10000
+    additionalcharge: 500
+    discount: 500
+    taxrate: 18
+    taxamount: 1800
+    grandtotal: 11800
+    proposalstatus: "new"
+    items: [
+      {
+        locationId: 1
+        invoiceId: 1
+        productId: 1
+        serialno: "SN001"
+        saccode: "998314"
+        quantity: 1
+        rate: 5000
+        amount: 5000
+      }
+    ]
+  }) {
+    id
+    proposalno
+    proposaldate
+    grandtotal
+    proposalstatus
+    customer {
+      name
+    }
+    items {
+      id
+      serialno
+      amount
+      product {
+        name
+      }
+      location {
+        displayName
+      }
+    }
+  }
+}
+```
+
+#### Generate Proposal Document
+
+```graphql
+mutation GenerateProposalDocument {
+  generateProposalDocument(proposalId: 1) {
+    id
+    doclink
+  }
+}
+```
+
+### Mail Settings
+
+#### Update Mail Setup
+
+```graphql
+mutation UpdateMailSetup {
+  updateMailSetup(id: 1, input: {
+    smtphost: "smtp.gmail.com"
+    smtpport: 587
+    smtpuser: "your-email@gmail.com"
+    smtppassword: "your-app-password"
+    enablessl: true
+    sendername: "AMC System"
+    senderemail: "noreply@amc.com"
+  }) {
+    id
+    smtphost
+    smtpport
+    sendername
+  }
+}
+```
+
+---
+
+## 🔒 Security
+
+### Authentication & Authorization
+
+#### JWT Token Structure
+
+```json
+{
+  "userId": 1,
+  "email": "admin@amc.com",
+  "role": "admin",
+  "iat": 1701360000,
+  "exp": 1701964800
+}
+```
+
+#### Password Security
+
+- **Algorithm**: Argon2 (industry standard)
+- **Salt**: Automatically generated per password
+- **Memory Cost**: 65536 KB
+- **Time Cost**: 3 iterations
+- **Parallelism**: 4 threads
+
+#### Token Validation
+
+```typescript
+// Backend: src/graphql/admin/context.ts
+export const createContext = async ({ req }: any) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  
+  if (!token) {
+    return { user: null };
+  }
+  
+  try {
+    const decoded = verifyToken(token);
+    return { user: decoded };
+  } catch (error) {
+    return { user: null };
+  }
+};
+```
+
+### CORS Configuration
+
+```typescript
+// Backend: src/server.ts
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
+```
+
+### Security Headers
+
+Using **Helmet.js**:
+
+```typescript
+import helmet from 'helmet';
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
+```
+
+### Environment Variables
+
+> [!CAUTION]
+> Never commit `.env` files to version control. Always use `.env.example` as a template.
+
+### SQL Injection Prevention
+
+Prisma ORM provides automatic protection against SQL injection through parameterized queries.
+
+### XSS Protection
+
+- Input sanitization on backend
+- Content Security Policy headers
+- React's built-in XSS protection
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### Backend Issues
+
+##### Issue: Database Connection Failed
+
+**Error**: `Can't reach database server`
+
+**Solution**:
+```bash
+# Check PostgreSQL is running
+# Windows
+net start postgresql
+
+# Verify DATABASE_URL in .env
+# Test connection
+npx prisma db pull
+```
+
+##### Issue: Prisma Client Not Generated
+
+**Error**: `Cannot find module '@prisma/client'`
+
+**Solution**:
+```bash
+npx prisma generate
+```
+
+##### Issue: Migration Failed
+
+**Error**: `Migration failed to apply`
+
+**Solution**:
+```bash
+# Reset database (development only)
+npx prisma migrate reset
+
+# Or fix migration manually
+npx prisma migrate resolve --applied <migration-name>
+```
+
+##### Issue: JWT Token Invalid
+
+**Error**: `Invalid token`
+
+**Solution**:
+- Check JWT_SECRET is set correctly
+- Verify token hasn't expired
+- Check Authorization header format: `Bearer <token>`
+
+#### Frontend Issues
+
+##### Issue: GraphQL Connection Failed
+
+**Error**: `Network error: Failed to fetch`
+
+**Solution**:
+```bash
+# Check backend is running
+# Verify NEXT_PUBLIC_GRAPHQL_URL in .env
+# Check CORS configuration in backend
+```
+
+##### Issue: Authentication Not Working
+
+**Error**: `Unauthorized`
+
+**Solution**:
+- Clear localStorage and cookies
+- Re-login to get new token
+- Check token is being sent in headers
+
+##### Issue: Build Failed
+
+**Error**: `Type error in build`
+
+**Solution**:
+```bash
+# Clear Next.js cache
+rm -rf .next
+
+# Reinstall dependencies
+rm -rf node_modules
+npm install
+
+# Rebuild
+npm run build
+```
+
+### Debug Mode
+
+#### Backend Logging
+
+```typescript
+// Enable debug logging
+// Set in .env
+NODE_ENV=development
+
+// Logs will show in console with Pino
+```
+
+#### Frontend Debugging
+
+```typescript
+// Apollo Client DevTools
+// Install browser extension
+// View queries, mutations, and cache
+```
+
+### Performance Optimization
+
+#### Database Indexing
+
+```prisma
+// Add indexes to frequently queried fields
+model customer {
+  @@index([email])
+  @@index([status])
+}
+```
+
+#### GraphQL Query Optimization
+
+```graphql
+# Use pagination
+query GetCustomers {
+  customers(page: 1, limit: 20) {
+    data { ... }
+  }
+}
+
+# Request only needed fields
+query GetCustomers {
+  customers {
+    data {
+      id
+      name
+      # Don't fetch unnecessary relations
+    }
+  }
+}
+```
+
+#### Frontend Optimization
+
+```typescript
+// Use React.memo for expensive components
+const ExpensiveComponent = React.memo(({ data }) => {
+  // Component logic
+});
+
+// Lazy load routes
+const Dashboard = lazy(() => import('./dashboard/page'));
+```
+
+---
+
+## 📝 Additional Resources
+
+### Useful Commands
+
+```bash
+# Backend
+npm run dev              # Start dev server
+npm run build            # Build for production
+npm start                # Start production server
+npm run db:seed          # Seed database
+npx prisma studio        # Open Prisma Studio (DB GUI)
+npx prisma migrate dev   # Create migration
+npx prisma generate      # Generate Prisma client
+
+# Frontend
+npm run dev              # Start dev server
+npm run build            # Build for production
+npm start                # Start production server
+npm run lint             # Run linter
+npx shadcn@latest add    # Add shadcn component
+```
+
+### GraphQL Playground
+
+Access GraphQL Playground at:
+- Admin: `http://localhost:4000/graphql/admin`
+- User: `http://localhost:4000/graphql/user`
+
+### Database Management
+
+```bash
+# Open Prisma Studio
+npx prisma studio
+
+# View database in browser
+# http://localhost:5555
+```
+
+### Testing
+
+```bash
+# Backend (to be implemented)
+npm test
+
+# Frontend (to be implemented)
+npm test
+```
+
+---
+
+## 🎯 Future Enhancements
+
+### Planned Features
+
+- [ ] User GraphQL API implementation
+- [ ] Role-based access control (RBAC)
+- [ ] Advanced reporting and analytics
+- [ ] PDF generation for invoices
+- [ ] Email templates management
+- [ ] Notification system
+- [ ] Audit logs
+- [ ] Multi-language support
+- [ ] Mobile app (React Native)
+- [ ] Automated testing (Jest, Cypress)
+- [ ] CI/CD pipeline
+- [ ] Docker containerization
+- [ ] Kubernetes deployment
+
+### Performance Improvements
+
+- [ ] Redis caching
+- [ ] Database query optimization
+- [ ] CDN for static assets
+- [ ] Image optimization
+- [ ] Code splitting
+- [ ] Server-side rendering optimization
+
+### Security Enhancements
+
+- [ ] Two-factor authentication (2FA)
+- [ ] OAuth integration
+- [ ] API rate limiting
+- [ ] Advanced audit logging
+- [ ] Encryption at rest
+- [ ] Security scanning
+
+---
+
+## 📞 Support & Contact
+
+For questions, issues, or contributions:
+
+- **Author**: Susovan Pal
+- **Email**: Contact through project repository
+- **Repository**: [GitHub Repository URL]
+- **Documentation**: This file
+
+---
+
+## 📄 License
+
+ISC License
+
+---
+
+**Last Updated**: November 30, 2025  
+**Version**: 1.0.0  
+**Status**: Production Ready ✅
